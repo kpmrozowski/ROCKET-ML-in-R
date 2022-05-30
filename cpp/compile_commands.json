@@ -1,0 +1,7 @@
+[
+{
+  "directory": "/home/kmro/Documents/pw_mini/S3/wztum/rocket-cpp/out/build",
+  "command": "/usr/local/bin/clang++ -I../../include  -Wall -O0 -O0 -std=c++20 -g -o CMakeFiles/rocket-cpp.dir/src/rocket.cpp.o -c /home/kmro/Documents/pw_mini/S3/wztum/rocket-cpp/src/rocket.cpp",
+  "file": "/home/kmro/Documents/pw_mini/S3/wztum/rocket-cpp/src/rocket.cpp"
+}
+]

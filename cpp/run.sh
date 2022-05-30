@@ -1,0 +1,1 @@
+ninja -C out/build && ./out/build/rocket-cpp
