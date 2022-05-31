@@ -9,3 +9,8 @@ df <- separate(dat,
                extra = "warn",
                fill = "warn"
                )[1:300, 2:501]
+
+
+# print(x_out[a1 : b1, seq_len(ncol(x_out))])
+# print(dim(x_out[a1 : b1, seq_len(ncol(x_out))]))
+# print(length(applied_kernels))
