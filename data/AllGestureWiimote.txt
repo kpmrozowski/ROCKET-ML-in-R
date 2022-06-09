@@ -1,3 +1,0 @@
-AllGestureWiimoteX
-AllGestureWiimoteY
-AllGestureWiimoteZ

@@ -1,5 +1,7 @@
 out
 __pycache__
 .cache
-results/*
+results*/*
 cpp/out
+data/*/
+old-data

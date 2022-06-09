@@ -1,3 +1,0 @@
-CricketX
-CricketY
-CricketZ
