@@ -4,6 +4,7 @@ source("rocket_functions_multivariate.r")
 num_runs <- 10
 num_kernels <- 200
 replace_with_mean <- T
+trim_sequences <- F
 seed0 <- 123
 
 results_path <- "results_1"
@@ -64,21 +65,26 @@ for (i in seq_len(length(datasets$names))) {
    for (run_id in seq_len(num_runs)) {
       cat("\tIteration", run_id, "of", num_runs, "\n")
 
-      cat("======= ======= Replacing NaN ======= =======\n")
-      preprocessing_start <- Sys.time()
-      replaced_trainset <- replace_values(
-         train$data_sets, train$classes, replace_with_mean, seed0 + run_id)
-      write.table(replaced_trainset, row.names = F, sep = ",", file = paste0(
-         getwd(), "/", results_path, "/", dataset_name, "/replaced_TRAIN.txt"))
+      replaced_trainset <- train$data_sets
+      replaced_testset <- test$data_sets
+      if (trim_sequences) {
+         cat("======= ======= Replacing NaN ======= =======\n")
+         preprocessing_start <- Sys.time()
+         replaced_trainset <- replace_values(
+            train$data_sets, train$classes, replace_with_mean, seed0 + run_id)
+         write.table(replaced_trainset, row.names = F, sep = ",",
+            file = paste0(getwd(),"/", results_path, "/", dataset_name,
+               "/replaced_TRAIN.txt"))
 
-      replaced_testset <- replace_values(
-         test$data_sets, test$classes, replace_with_mean, seed0 + run_id)
-      write.table(replaced_testset, row.names = F, sep = ",", file = paste0(
-         getwd(), "/", results_path, "/", dataset_name, "/replaced_TEST.txt"))
+         replaced_testset <- replace_values(
+            test$data_sets, test$classes, replace_with_mean, seed0 + run_id)
+         write.table(replaced_testset, row.names = F, sep = ",",
+            file = paste0(getwd(), "/", results_path, "/", dataset_name,
+               "/replaced_TEST.txt"))
 
-      preprocessing_time <- preprocessing_time +
-         as.numeric(Sys.time() - preprocessing_start, units = "secs")
-
+         preprocessing_time <- preprocessing_time +
+            as.numeric(Sys.time() - preprocessing_start, units = "secs")
+      }
       cat("======= ======= Generating kernels ======= =======\n")
       rocket_start <- Sys.time()
       kernels <- generate_kernels(

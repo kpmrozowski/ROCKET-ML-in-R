@@ -1,6 +1,5 @@
 library(tidyr) # separate
 library(splitstackshape) # cSplit
-library(imputeTS) # na_replace
 library(stringr)
 
 read_datases_names_and_counts <- function(datasets_path) {
@@ -55,6 +54,48 @@ read_data <- function(train_or_test, datasets_path, name, count) {
    list("data_sets" = data_sets, "classes" = classes)
 }
 
+replace_values <- function(datasets, classes, replace_with_mean, seed) {
+
+   set.seed(seed)
+   classes_table <- table(classes)
+   unique_classes <- unique(classes)
+   dims <- dim(datasets)
+   
+
+   for (i in seq_len(length(unique_classes))) {
+      one_third <- as.integer(classes_table[[unique_classes[i]]] / 3)
+      two_third <- 2 * one_third
+      counter <- 0
+      for (j in seq_len(length(classes))) {
+         if (classes[j] == unique_classes[i]) {
+            counter <- counter + 1
+            if (counter < one_third) {
+               from <- sample(
+                  as.integer(dims[3] * 0.1) : as.integer(dims[3] * 0.4), 1)
+            }
+            else if (counter >= one_third & counter < two_third) {
+               from <- sample(
+                  as.integer(dims[3] * 0.4) : as.integer(dims[3] * 0.7), 1)
+            }
+            else {
+               from <- sample(as.integer(dims[3] * 0.7) : dims[3], 1)
+            }
+            for (dim_id in seq_len(dims[2])) {
+               if (replace_with_mean) {
+                  datasets[j, dim_id, from:dims[3]] <- rep(mean(
+                     datasets[j, dim_id, 1:(from - 1)]), dims[3] - from + 1)
+               }
+               else {
+                  datasets[j, dim_id, from:dims[3]] <-
+                     numeric(dims[3] - from + 1)
+               }
+            }
+         }
+      }
+   }
+  return(datasets)
+}
+
 generate_kernels <- function(timepoints_count, num_kernels, ncols, seed) {
 
    set.seed(seed)
@@ -90,16 +131,13 @@ generate_kernels <- function(timepoints_count, num_kernels, ncols, seed) {
       nlog2 <- log2((timepoints_count - 1) / (lengths[i] - 1))
 
       if (nlog2 > 0) {
-         dilation <- 2 ** runif(1, 0, nlog2)
+         dilations[i] <- as.integer(2 ** runif(1, 0, nlog2))
       }
       else {
-         dilation <- 2 ** runif(1, nlog2, 0)
+         dilations[i] <- as.integer(2 ** runif(1, nlog2, 0))
       }
-      dilation <- as.integer(dilation)
-      dilations[i] <- dilation
-
       if (sample(c(0, 1), 1) == 0) {
-         paddings[i] <- as.integer(((lengths[i] - 1) * dilation) / 2)
+         paddings[i] <- as.integer(((lengths[i] - 1) * dilations[i]) / 2)
       }
       else {
          paddings[i] <- 0
@@ -173,7 +211,6 @@ apply_kernel_uni <- function(x_in, weights, len, bias, dilation, padding) {
 }
 
 library(parallel)
-library(lme4)
 
 apply_kernels <- function(x_in, kernels) {
 
@@ -236,46 +273,6 @@ apply_kernels <- function(x_in, kernels) {
          ncol = num_kernels * 2
       )
    )
-}
-
-replace_values <- function(datasets, classes, replace_with_mean, seed) {
-
-   set.seed(seed)
-   classes_table <- table(classes)
-   unique_classes <- unique(classes)
-   dims <- dim(datasets)
-
-   for (i in seq_len(length(unique_classes))) {
-      one_third <- as.integer(classes_table[[unique_classes[i]]] / 3)
-      two_third <- 2 * one_third
-      class_count <- 0
-      for (j in seq_len(length(classes))) {
-         if (classes[j] == unique_classes[i]) {
-            class_count <- class_count + 1
-            if (class_count < one_third) {
-               from <- sample(
-                  as.integer(dims[3] * 0.1) : as.integer(dims[3] * 0.4), 1)
-            }
-            else if (class_count >= one_third & class_count < two_third) {
-               from <- sample(
-                  as.integer(dims[3] * 0.4) : as.integer(dims[3] * 0.7), 1)
-            }
-            else {
-               from <- sample(as.integer(dims[3] * 0.7) : dims[3], 1)
-            }
-            for (k in seq_len(dims[2])) {
-               if (replace_with_mean) {
-                  datasets[j, k, from:dims[3]] <-
-                     rep(mean(datasets[j, k, 1:(from - 1)]), dims[3] - from + 1)
-               }
-               else {
-                  datasets[j, k, from:dims[3]] <- numeric(dims[3] - from + 1)
-               }
-            }
-         }
-      }
-   }
-  return(datasets)
 }
 
 library(reticulate)
